@@ -5,8 +5,7 @@ on:
 
 env:
   PHP_VERSION: 8.5
-  APP_NAME: ${{ secrets.DEV_APP_NAME }}
-  APP_NAMESPACE: ${{ env.APP_NAME }}
+  APP_NAMESPACE: ${{ secrets.DEV_APP_NAME }}
   REMOTE_BASE_PATH: /data/projects/${{ secrets.DEV_APP_NAME }}/
 jobs:
   deploy:
