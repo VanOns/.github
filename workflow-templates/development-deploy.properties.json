@@ -1,0 +1,8 @@
+{
+    "name": "VanOns/Development Deployment",
+    "description": "Deploys a Laravel application to our development cluster.",
+    "iconName": "rocket",
+    "categories": [
+        "PHP"
+    ]
+}
