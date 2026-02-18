@@ -1,7 +1,7 @@
 {
-    "name": "VanOns/Development Deployment",
+    "name": "Laravel Development Deploy",
     "description": "Deploys a Laravel application to our development cluster.",
-    "iconName": "rocket",
+    "iconName": "cow",
     "categories": [
         "PHP"
     ]
