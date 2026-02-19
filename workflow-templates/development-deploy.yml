@@ -92,9 +92,6 @@ jobs:
             mkdir -p ${{ env.REMOTE_BASE_PATH }}storage/framework/views
           EOF
 
-      - name: 🛂 Fix permissions
-        run: ssh ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_STORAGE_HOST }} "chown -R vanons:www-data ${{ env.REMOTE_BASE_PATH }}"
-
       - name: 🔁️ Restart deployment
         run: |
           kubectl rollout restart deployment -n ${{ env.APP_NAMESPACE }}
