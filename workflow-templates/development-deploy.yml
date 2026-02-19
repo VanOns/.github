@@ -14,10 +14,11 @@ jobs:
       - name: 📄 Clone repository
         uses: actions/checkout@v3
 
-      - name: 🔑 Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: ⚙️ Install SSH key
+        uses: shimataro/ssh-key-action@v2
         with:
-          ssh-private-key: ${{ secrets.DEV_KEY }}
+          key: ${{ secrets.DEV_KEY }}
+          known_hosts: ${{ secrets.DEV_STORAGE_KNOWN_HOSTS }}
 
       - name: 🧊 Setup kubectl
         uses: azure/setup-kubectl@v4
@@ -76,11 +77,11 @@ jobs:
         run: npm run build
 
       - name: 📂 Deploy
-        run: rsync -avz --delete --include-from=.rsync . ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_HOST }}:${{ env.REMOTE_BASE_PATH }}
+        run: rsync -avz --delete --include-from=.rsync . ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_STORAGE_HOST }}:${{ env.REMOTE_BASE_PATH }}
 
       - name: 📂 Create folders
         run: |
-          ssh ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_HOST }} << EOF
+          ssh ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_STORAGE_HOST }} << EOF
             cd ${{ env.REMOTE_BASE_PATH }}
             mkdir -p ${{ env.REMOTE_BASE_PATH }}storage/app
             mkdir -p ${{ env.REMOTE_BASE_PATH }}storage/logs
@@ -90,6 +91,9 @@ jobs:
             mkdir -p ${{ env.REMOTE_BASE_PATH }}storage/framework/testing
             mkdir -p ${{ env.REMOTE_BASE_PATH }}storage/framework/views
           EOF
+
+      - name: 🛂 Fix permissions
+        run: ssh ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_STORAGE_HOST }} "chown -R vanons:www-data ${{ env.REMOTE_BASE_PATH }}"
 
       - name: 🔁️ Restart deployment
         run: |
