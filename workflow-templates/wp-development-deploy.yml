@@ -1,0 +1,92 @@
+name: Development deployment
+
+on:
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: 8.3
+  APP_NAMESPACE: ${{ secrets.DEV_APP_NAME }}
+  REMOTE_BASE_PATH: /data/projects/${{ secrets.DEV_APP_NAME }}/
+  THEME_PATH: wp-content/themes/vo-theme
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📄 Clone repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.DEV_KEY }}
+          known_hosts: ${{ secrets.DEV_STORAGE_KNOWN_HOSTS }}
+
+      - name: 🧊 Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: 🤓 Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.DEV_KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: 🛡️ Set up WireGuard
+        uses: egor-tensin/setup-wireguard@v1
+        with:
+          endpoint: '${{ secrets.DEV_WG_ENDPOINT }}'
+          endpoint_public_key: '${{ secrets.DEV_WG_ENDPOINT_PUBLIC_KEY }}'
+          ips: '${{ secrets.DEV_WG_IPS }}'
+          allowed_ips: '${{ secrets.DEV_WG_ALLOWED_IPS }}'
+          private_key: '${{ secrets.DEV_WG_PRIVATE_KEY }}'
+          preshared_key: '${{ secrets.DEV_WG_PRESHARED_KEY }}'
+
+      - name: ⚙️ Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: ⚙️ Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: 🔑 Configure Composer authentication
+        run: |
+          composer config github-oauth.github.com ${{ secrets.TOKEN_GITHUB }}
+
+      - name: ✨ Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: 📦 Set up Composer dependency caching
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: ⬇️ Install Composer dependencies
+        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-dev --no-ansi --no-interaction --optimize-autoloader
+
+      - name: ⬇️ Install npm dependencies
+        run: |
+          cd ${{ env.THEME_PATH }}
+          npm ci
+
+      - name: 🔧 Build npm
+        run: |
+          cd ${{ env.THEME_PATH }}
+          npm run build
+
+      - name: 📦 Remove node_modules
+        run: rm -r ${{ env.THEME_PATH }}/node_modules
+
+      - name: 📂 Deploy
+        run: rsync -avz --delete --include-from=.rsync . ${{ secrets.DEV_USER_NAME }}@${{ secrets.DEV_STORAGE_HOST }}:${{ env.REMOTE_BASE_PATH }}
+
+      - name: 🔁️ Restart deployment
+        run: |
+          kubectl rollout restart deployment -n ${{ env.APP_NAMESPACE }}

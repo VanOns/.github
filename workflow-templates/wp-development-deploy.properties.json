@@ -1,0 +1,8 @@
+{
+    "name": "WordPress Development Deploy",
+    "description": "Deploys a WordPress application to our development cluster.",
+    "iconName": "cow",
+    "categories": [
+        "PHP"
+    ]
+}
