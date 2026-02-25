@@ -54,11 +54,14 @@ jobs:
 
       - name: 🔑 Configure Composer authentication
         run: |
+          cd ${{ env.THEME_PATH }}
           composer config github-oauth.github.com ${{ secrets.TOKEN_GITHUB }}
 
       - name: ✨ Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: |
+          cd ${{ env.THEME_PATH }}
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: 📦 Set up Composer dependency caching
         uses: actions/cache@v3
@@ -69,7 +72,9 @@ jobs:
             ${{ runner.os }}-composer-
 
       - name: ⬇️ Install Composer dependencies
-        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-dev --no-ansi --no-interaction --optimize-autoloader
+        run: |
+          cd ${{ env.THEME_PATH }}
+          composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-dev --no-ansi --no-interaction --optimize-autoloader
 
       - name: ⬇️ Install npm dependencies
         run: |
