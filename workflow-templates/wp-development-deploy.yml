@@ -6,7 +6,7 @@ on:
 env:
   PHP_VERSION: 8.3
   APP_NAMESPACE: ${{ secrets.DEV_APP_NAME }}
-  REMOTE_BASE_PATH: /data/projects/${{ secrets.DEV_APP_NAME }}/
+  REMOTE_BASE_PATH: /data/projects/${{ secrets.DEV_APP_NAME }}/public/
   THEME_PATH: wp-content/themes/vo-theme
 jobs:
   deploy:
@@ -43,9 +43,9 @@ jobs:
       - name: ⚙️ Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ${{ env.THEME_PATH }}/.nvmrc
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ env.THEME_PATH }}/package-lock.json
 
       - name: ⚙️ Set up PHP
         uses: shivammathur/setup-php@v2
