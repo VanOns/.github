@@ -11,6 +11,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ secrets.DEV_APP_NAME != '' }}
     steps:
       - name: 📄 Clone repository
         uses: actions/checkout@v3
