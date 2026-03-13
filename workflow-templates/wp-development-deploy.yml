@@ -5,14 +5,20 @@ on:
 
 env:
   PHP_VERSION: 8.3
+  DEV_APP_NAME: ${{ secrets.DEV_APP_NAME }}
   APP_NAMESPACE: ${{ secrets.DEV_APP_NAME }}
   REMOTE_BASE_PATH: /data/projects/${{ secrets.DEV_APP_NAME }}/public/
   THEME_PATH: wp-content/themes/vo-theme
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ secrets.DEV_APP_NAME != '' }}
     steps:
+      - name: Check DEV_APP_NAME
+        if: ${{ env.DEV_APP_NAME == '' }}
+        run: |
+          echo "DEV_APP_NAME secret is not set. Aborting workflow."
+          exit 1
+
       - name: 📄 Clone repository
         uses: actions/checkout@v3
 
