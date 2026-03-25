@@ -37,15 +37,12 @@ jobs:
           echo "${{ secrets.DEV_KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
 
-      - name: 🛡️ Set up WireGuard
-        uses: egor-tensin/setup-wireguard@v1
+      - name: 🐥 Connect to NetBird
+        id: netbird
+        uses: Alemiz112/netbird-connect@v1
         with:
-          endpoint: '${{ secrets.DEV_WG_ENDPOINT }}'
-          endpoint_public_key: '${{ secrets.DEV_WG_ENDPOINT_PUBLIC_KEY }}'
-          ips: '${{ secrets.DEV_WG_IPS }}'
-          allowed_ips: '${{ secrets.DEV_WG_ALLOWED_IPS }}'
-          private_key: '${{ secrets.DEV_WG_PRIVATE_KEY }}'
-          preshared_key: '${{ secrets.DEV_WG_PRESHARED_KEY }}'
+          setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
+          management-url: 'https://netbird.vanons.io'
 
       - name: ⚙️ Set up Node.js
         uses: actions/setup-node@v3
